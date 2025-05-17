@@ -1,15 +1,21 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import WhiteboardPalette from "@/components/ui/whiteboard/whiteboard-palette";
+import Button from "@/components/ui/button";
 
-export default function WhiteboardCanvas({ className } : { className: string }) {
+import { useState, useRef, useEffect } from "react";
+import { useWhiteboard } from "@/lib/whiteboard-context";
+
+export default function Whiteboard({ className } : { className: string }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+    const {color, lineWidth} = useWhiteboard();
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) {
+            console.error("couldn't get canvas reference");
             return;
         }
         canvas.width = window.innerWidth;
@@ -20,6 +26,18 @@ export default function WhiteboardCanvas({ className } : { className: string }) 
         context.lineCap = 'round';
         setCtx(context);
     }, []);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) {
+            console.error("couldn't get canvas reference");
+            return;
+        }
+        const context = canvas.getContext('2d')!
+        context.lineWidth = lineWidth;
+        context.strokeStyle = color;
+        context.lineCap = 'round';
+    }, [color, lineWidth]);
 
     function startDrawing(e: React.MouseEvent) {
         if (!ctx) { return; }
@@ -43,6 +61,14 @@ export default function WhiteboardCanvas({ className } : { className: string }) 
         ctx.stroke();
     }
 
+    function resetCanvas() {
+        const ctx = canvasRef.current!.getContext('2d');
+        ctx!.reset();
+        ctx!.lineWidth = lineWidth;
+        ctx!.strokeStyle = color;
+        ctx!.lineCap = 'round';
+    }
+
     return (
         <div className={`absolute top-0 left-0 w-full h-full flex flex-col items-center bg-white ${className}`}>
             <canvas
@@ -53,6 +79,8 @@ export default function WhiteboardCanvas({ className } : { className: string }) 
                 onMouseLeave={endDrawing}
                 >
             </canvas>
+            <WhiteboardPalette/>
+            <Button text="Reset canvas" onClick={resetCanvas} className="fixed bottom-2 left-2"/>
         </div>
     );
 }
