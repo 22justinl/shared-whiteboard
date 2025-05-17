@@ -41,7 +41,6 @@ export default function WhiteboardCanvas({ className } : { className: string }) 
         if (!ctx) { return; }
         setIsDrawing(false);
         ctx.stroke();
-        ctx.closePath();
     }
 
     return (
