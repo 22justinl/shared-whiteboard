@@ -8,7 +8,7 @@ export default function WhiteboardPalette({ className } : {className?: string}) 
     const [isDragging, setIsDragging] = useState(false);
     const [pos, setPos] = useState({x:50,y:50});
     const [offset, setOffset] = useState({x:0,y:0});
-    const {color, setColor, lineWidth, setLineWidth} = useWhiteboard();
+    const {lineWidth, setLineWidth} = useWhiteboard();
 
     const startDragging = (e: React.MouseEvent) => {
         console.log("start dragging");

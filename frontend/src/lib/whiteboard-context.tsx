@@ -23,5 +23,8 @@ export default function WhiteboardProvider({children}: {children: React.ReactNod
 
 export function useWhiteboard() {
     const context = useContext(WhiteboardContext);
+    if (!context) {
+        throw new Error("couldn't get context");
+    }
     return context;
 }
