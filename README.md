@@ -1,2 +1,2 @@
 # Shared Whiteboard App
-Basic sharable whiteboard app (like excalidraw) to learn web app basics
+Basic sharable whiteboard app (to learn web app basics)
