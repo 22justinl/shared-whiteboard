@@ -8,7 +8,7 @@ export default function WhiteboardPalette({ className } : {className?: string}) 
     const [isDragging, setIsDragging] = useState(false);
     const [pos, setPos] = useState({x:50,y:50});
     const [offset, setOffset] = useState({x:0,y:0});
-    const {lineWidth, setLineWidth} = useWhiteboard();
+    const {lineWidth, setLineWidth, strokeStyle, setStrokeStyle} = useWhiteboard();
 
     // position
     useEffect(() => {
@@ -51,21 +51,41 @@ export default function WhiteboardPalette({ className } : {className?: string}) 
         setLineWidth(lineWidth-1);
     }
 
+    const colors = ["black", "white", "red-500", "orange-500", "yellow-500", "green-500", "blue-500", "purple-500", "pink-500"];
+    const colorsHex = ["#000000", "#ffffff", "#fb2c36", "#ff6900", "#f0b100", "#00c950", "#2b7fff", "#ad47ff", "#f6339a"];
+    function setColor(i: number) {
+        setStrokeStyle(colorsHex[i]);
+    }
+
     return (
         <div
             ref = {paletteRef}
-            className={`fixed bg-gray-50 text-black border border-black rounded-md p-2 select-none ${className}`}
+            className={`fixed flex flex-row space-x-2 justify-center items-center bg-gray-50 text-black border border-black rounded-md select-none px-2 ${className}`}
             style={{left: pos.x, top:pos.y}}
             onMouseDown={startDragging}
             >
-            <div className="flex flex-row space-x-3">
-                <button onClick={decreaseWidth} className="border border-black min-w-6">
+            <div className="flex flex-row space-x-2">
+                <button onClick={decreaseWidth} className="border border-black size-6">
                     -
                 </button>
                 <p>{lineWidth}</p>
-                <button onClick={increaseWidth} className="border border-black min-w-6">
+                <button onClick={increaseWidth} className="border border-black size-6">
                     +
                 </button>
+            </div>
+            <div className="border-l border-l-gray-300 h-10"></div>
+            <div className="flex flex-row">
+                {colors.map((color, i) => {
+                        return (
+                            <div key={i} className="rounded-full size-7 flex justify-center items-center">
+                                <button className={`rounded-full bg-${color} border border-black size-6 hover:size-7 transition-all`} onClick={()=>{setColor(i)}}/>
+                            </div>
+                        );
+                    })}
+            </div>
+            <div className="border-l border-l-gray-300 h-10"></div>
+            <div>
+                Width Presets
             </div>
         </div>
     );
