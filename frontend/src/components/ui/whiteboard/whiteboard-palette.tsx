@@ -10,15 +10,16 @@ export default function WhiteboardPalette({ className } : {className?: string}) 
     const [offset, setOffset] = useState({x:0,y:0});
     const {lineWidth, setLineWidth} = useWhiteboard();
 
+    // position
+    useEffect(() => {
+        setPos({x: window.innerWidth/2, y: window.innerHeight/2});
+    },[])
+
+    // dragging
     const startDragging = (e: React.MouseEvent) => {
-        console.log("start dragging");
         setIsDragging(true);
         setOffset({x: e.clientX - pos.x, y: e.clientY - pos.y});
     }
-    //useEffect(() => {
-    //    setPos({x: window.innerWidth/2, y: window.innerHeight/2});
-    //},[])
-
     useEffect(() => {
         const drag = (e: MouseEvent) => {
             if (!isDragging) {
@@ -27,7 +28,6 @@ export default function WhiteboardPalette({ className } : {className?: string}) 
             setPos({x: e.clientX - offset.x, y: e.clientY - offset.y});
         }
         const endDragging = () => {
-            console.log("end dragging");
             setIsDragging(false);
         }
         if (isDragging) {
@@ -40,6 +40,7 @@ export default function WhiteboardPalette({ className } : {className?: string}) 
         };
     }, [isDragging, offset]);
 
+    // width
     function increaseWidth() {
         setLineWidth(lineWidth+1);
     }

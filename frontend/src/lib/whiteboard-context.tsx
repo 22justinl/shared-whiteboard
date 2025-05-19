@@ -1,8 +1,8 @@
 import { useState, useContext, createContext } from "react";
 
 type WhiteboardContextType = {
-    color: string;
-    setColor: React.Dispatch<React.SetStateAction<string>>;
+    strokeStyle: string | CanvasGradient | CanvasPattern;
+    setStrokeStyle: React.Dispatch<React.SetStateAction<string | CanvasGradient | CanvasPattern>>;
 
     lineWidth: number;
     setLineWidth: React.Dispatch<React.SetStateAction<number>>;
@@ -11,11 +11,11 @@ type WhiteboardContextType = {
 const WhiteboardContext = createContext<WhiteboardContextType | null>(null);
 
 export default function WhiteboardProvider({children}: {children: React.ReactNode}) {
-    const [color, setColor] = useState("#000000");
-    const [lineWidth, setLineWidth] = useState(2);
+    const [strokeStyle, setStrokeStyle] = useState<string | CanvasGradient | CanvasPattern>("#000000");
+    const [lineWidth, setLineWidth] = useState(1);
 
     return (
-        <WhiteboardContext.Provider value={{color, setColor, lineWidth, setLineWidth}}>
+        <WhiteboardContext.Provider value={{strokeStyle, setStrokeStyle, lineWidth, setLineWidth}}>
             {children}
         </WhiteboardContext.Provider>
     );
