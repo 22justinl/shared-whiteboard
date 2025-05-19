@@ -16,6 +16,7 @@ interface DrawPayload {
     points: {x: number, y: number}[];
     lineWidth: number;
     strokeStyle: string | CanvasGradient | CanvasPattern;
+    colorIndex: number;
     lineCap: CanvasLineCap;
 }
 
@@ -24,7 +25,7 @@ export default function Whiteboard({ className } : { className: string }) {
     const dbRef = useRef<IDBDatabase>(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-    const {strokeStyle, setStrokeStyle, lineWidth, setLineWidth} = useWhiteboard();
+    const {strokeStyle, setStrokeStyle, colorIndex, setColorIndex, lineWidth, setLineWidth} = useWhiteboard();
     const startPointRef = useRef<{x: number, y: number}>({x:0, y:0});
     const pointsRef = useRef<{x: number, y: number}[]>([]);
 
@@ -78,8 +79,9 @@ export default function Whiteboard({ className } : { className: string }) {
                         }
                         // restore drawing mode from last change
                         if (i == count.result-1) {
-                            setLineWidth(change.payload.lineWidth);
                             setStrokeStyle(change.payload.strokeStyle);
+                            setColorIndex(change.payload.colorIndex);
+                            setLineWidth(change.payload.lineWidth);
                         }
                     }
                 }
@@ -87,7 +89,7 @@ export default function Whiteboard({ className } : { className: string }) {
         }
         // TODO: create snapshot (async?) after every n strokes or after replaying changes and store in IDB
         //          then load snapshot next time page loads (and replay changes for first option)
-    }, [setLineWidth, setStrokeStyle]);
+    }, [setStrokeStyle, setColorIndex, setLineWidth]);
 
     // update drawing mode on change
     useEffect(() => {
@@ -141,6 +143,7 @@ export default function Whiteboard({ className } : { className: string }) {
                 points: pointsRef.current,
                 lineWidth: ctx.lineWidth,
                 strokeStyle: ctx.strokeStyle,
+                colorIndex: colorIndex,
                 lineCap: ctx.lineCap
             }
         }
@@ -153,8 +156,9 @@ export default function Whiteboard({ className } : { className: string }) {
     function resetCanvas() {
         const ctx = canvasRef.current!.getContext('2d');
         ctx!.reset();
-        setLineWidth(ctx!.lineWidth);
         setStrokeStyle(ctx!.strokeStyle);
+        setColorIndex(0);
+        setLineWidth(ctx!.lineWidth);
 
         const tx = dbRef.current!.transaction("canvases", "readwrite");
         const store = tx.objectStore("canvases");
