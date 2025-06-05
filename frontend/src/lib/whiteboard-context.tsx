@@ -1,10 +1,12 @@
+"use client";
+
 import { useState, useContext, createContext } from "react";
 
 type WhiteboardContextType = {
     strokeStyle: string | CanvasGradient | CanvasPattern;
     setStrokeStyle: React.Dispatch<React.SetStateAction<string | CanvasGradient | CanvasPattern>>;
 
-    colorIndex: number; // -1 for custom color
+    colorIndex: number; // -1 for custom color?
     setColorIndex: React.Dispatch<React.SetStateAction<number>>;
 
     lineWidth: number;

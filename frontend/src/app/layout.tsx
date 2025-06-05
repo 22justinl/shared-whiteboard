@@ -28,10 +28,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-          <div className="fixed top-2 right-2 flex flex-row space-x-3 z-10">
+        <div className="fixed top-2 right-2 flex flex-row space-x-3">
             <LinkButton text="Log in" link="/"/>
             <LinkButton text="Sign up" link="/"/>
-          </div>
+        </div>
         {children}
       </body>
     </html>

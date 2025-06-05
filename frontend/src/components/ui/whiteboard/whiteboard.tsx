@@ -155,7 +155,10 @@ export default function Whiteboard({ className } : { className: string }) {
     // reset canvas
     function resetCanvas() {
         const ctx = canvasRef.current!.getContext('2d');
+
         ctx!.reset();
+        ctx!.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
+
         setStrokeStyle(ctx!.strokeStyle);
         setColorIndex(0);
         setLineWidth(ctx!.lineWidth);
@@ -166,7 +169,7 @@ export default function Whiteboard({ className } : { className: string }) {
     }
 
     return (
-        <div className={`flex flex-col items-center bg-white ${className}`}>
+        <div className={`flex flex-col items-center z-0 ${className}`}>
             <canvas
                 ref={canvasRef}
                 onMouseDown={startDrawing}
@@ -177,7 +180,9 @@ export default function Whiteboard({ className } : { className: string }) {
             </canvas>
             <WhiteboardPalette/>
             <div className="fixed bottom-2 left-2 flex flex-row space-x-2"> 
-                <Button text="Reset canvas" onClick={resetCanvas} className=""/>
+                <Button onClick={resetCanvas} className="">
+                    Reset canvas
+                </Button>
             </div>
         </div>
     );
