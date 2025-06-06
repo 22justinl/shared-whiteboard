@@ -19,7 +19,6 @@ type WhiteboardContextType = {
     dbRef: React.RefObject<IDBDatabase | null>;
     dbReady: boolean;
     setDbReady: React.Dispatch<React.SetStateAction<boolean>>;
-
 }
 
 const WhiteboardContext = createContext<WhiteboardContextType | null>(null);

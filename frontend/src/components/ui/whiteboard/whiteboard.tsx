@@ -5,25 +5,15 @@ import Button from "@/components/ui/button";
 
 import { useState, useRef, useEffect } from "react";
 import { useWhiteboard } from "@/lib/whiteboard-context";
+import { useSession } from "@/lib/session-context";
 
-interface CanvasChange {
-    type: "draw" | "other";
-    startPoint: { x: number, y: number };
-    payload: DrawPayload;
-}
-
-interface DrawPayload {
-    points: { x: number, y: number }[];
-    lineWidth: number;
-    strokeStyle: string | CanvasGradient | CanvasPattern;
-    colorIndex: number;
-    lineCap: CanvasLineCap;
-}
+import { CanvasChange } from "@/types/canvas-types";
 
 export default function Whiteboard({ className }: { className: string }) {
     const [isDrawing, setIsDrawing] = useState(false);
     const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
     const { strokeStyle, setStrokeStyle, colorIndex, setColorIndex, lineWidth, setLineWidth, canvasRef, dbRef, setDbReady } = useWhiteboard();
+    const { socket, sessionActive } = useSession();
     const startPointRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 });
     const pointsRef = useRef<{ x: number, y: number }[]>([]);
 
@@ -49,6 +39,7 @@ export default function Whiteboard({ className }: { className: string }) {
         dbRequest.onsuccess = () => {
             dbRef.current = dbRequest.result;
             setDbReady(true);
+            // if (sessionActive) {return;}
             const tx = dbRequest.result.transaction("canvases", "readonly");
             const store = tx.objectStore("canvases");
             const count = store.count()
@@ -85,9 +76,7 @@ export default function Whiteboard({ className }: { className: string }) {
                 }
             }
         }
-        // TODO: create snapshot (async?) after every n strokes or after replaying changes and store in IDB
-        //          then load snapshot next time page loads (and replay changes for first option)
-    }, [setStrokeStyle, setColorIndex, setLineWidth, canvasRef, dbRef, setDbReady]);
+    }, [setStrokeStyle, setColorIndex, setLineWidth, canvasRef, dbRef, setDbReady, sessionActive]);
 
     // update drawing mode on change
     useEffect(() => {
@@ -131,7 +120,6 @@ export default function Whiteboard({ className }: { className: string }) {
         setIsDrawing(false);
         ctx.stroke();
 
-        // save to IDB
         const change: CanvasChange = {
             type: "draw",
             startPoint: startPointRef.current,
@@ -143,10 +131,17 @@ export default function Whiteboard({ className }: { className: string }) {
                 lineCap: ctx.lineCap
             }
         }
-        if (dbRef.current) {
+
+        // save to IDB
+        if (!sessionActive && dbRef.current) {
             const tx = dbRef.current.transaction("canvases", "readwrite");
             const store = tx.objectStore("canvases");
             store.put(change);
+        }
+
+        // send to server->other users in room
+        if (sessionActive && socket) {
+            socket.emit("send_change", change, ()=>console.log("send_change"));
         }
     }
 
@@ -161,15 +156,15 @@ export default function Whiteboard({ className }: { className: string }) {
         setStrokeStyle(ctx.strokeStyle);
         setColorIndex(0);
         setLineWidth(ctx.lineWidth);
-
-        if (dbRef.current) {
+        if (!sessionActive && dbRef.current) {
             const tx = dbRef.current.transaction("canvases", "readwrite");
             const store = tx.objectStore("canvases");
             store.clear();
         }
+        if (sessionActive && socket) {
+            socket.emit("reset_room_drawing");
+        }
     }
-
-    // saving
 
     return (
         <div className={`flex flex-col items-center z-0 ${className}`}>
@@ -186,15 +181,6 @@ export default function Whiteboard({ className }: { className: string }) {
                 <Button onClick={resetCanvas} className="">
                     Reset canvas
                 </Button>
-                {/* <Button onClick={downloadImage} className=""> */}
-                {/*     Download Canvas as Image */}
-                {/* </Button> */}
-                {/* <Button onClick={downloadImage} className=""> */}
-                {/*     Download Canvas as Image */}
-                {/* </Button> */}
-                {/* <Button onClick={downloadSnapshot} className=""> */}
-                {/*     Download Canvas Data */}
-                {/* </Button> */}
             </div>
         </div>
     );
