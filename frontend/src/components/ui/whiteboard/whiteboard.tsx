@@ -8,37 +8,34 @@ import { useWhiteboard } from "@/lib/whiteboard-context";
 
 interface CanvasChange {
     type: "draw" | "other";
-    startPoint: {x: number, y: number};
+    startPoint: { x: number, y: number };
     payload: DrawPayload;
 }
 
 interface DrawPayload {
-    points: {x: number, y: number}[];
+    points: { x: number, y: number }[];
     lineWidth: number;
     strokeStyle: string | CanvasGradient | CanvasPattern;
     colorIndex: number;
     lineCap: CanvasLineCap;
 }
 
-export default function Whiteboard({ className } : { className: string }) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const dbRef = useRef<IDBDatabase>(null);
+export default function Whiteboard({ className }: { className: string }) {
     const [isDrawing, setIsDrawing] = useState(false);
     const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-    const {strokeStyle, setStrokeStyle, colorIndex, setColorIndex, lineWidth, setLineWidth} = useWhiteboard();
-    const startPointRef = useRef<{x: number, y: number}>({x:0, y:0});
-    const pointsRef = useRef<{x: number, y: number}[]>([]);
+    const { strokeStyle, setStrokeStyle, colorIndex, setColorIndex, lineWidth, setLineWidth, canvasRef, dbRef, setDbReady } = useWhiteboard();
+    const startPointRef = useRef<{ x: number, y: number }>({ x: 0, y: 0 });
+    const pointsRef = useRef<{ x: number, y: number }[]>([]);
 
     // initial setup
     useEffect(() => {
         // canvas setup
         const canvas = canvasRef.current;
-        if (!canvas) {
-            return;
-        }
+        if (!canvas) { return; }
         canvas.width = window.innerWidth;
         canvas.height = window.innerWidth;
         const context = canvas.getContext('2d')!
+        if (!context) { return; }
         setCtx(context);
 
         // IDB setup
@@ -51,6 +48,7 @@ export default function Whiteboard({ className } : { className: string }) {
         // load saved canvas if it exists
         dbRequest.onsuccess = () => {
             dbRef.current = dbRequest.result;
+            setDbReady(true);
             const tx = dbRequest.result.transaction("canvases", "readonly");
             const store = tx.objectStore("canvases");
             const count = store.count()
@@ -78,7 +76,7 @@ export default function Whiteboard({ className } : { className: string }) {
                             }
                         }
                         // restore drawing mode from last change
-                        if (i == count.result-1) {
+                        if (i == count.result - 1) {
                             setStrokeStyle(change.payload.strokeStyle);
                             setColorIndex(change.payload.colorIndex);
                             setLineWidth(change.payload.lineWidth);
@@ -89,7 +87,7 @@ export default function Whiteboard({ className } : { className: string }) {
         }
         // TODO: create snapshot (async?) after every n strokes or after replaying changes and store in IDB
         //          then load snapshot next time page loads (and replay changes for first option)
-    }, [setStrokeStyle, setColorIndex, setLineWidth]);
+    }, [setStrokeStyle, setColorIndex, setLineWidth, canvasRef, dbRef, setDbReady]);
 
     // update drawing mode on change
     useEffect(() => {
@@ -98,36 +96,34 @@ export default function Whiteboard({ className } : { className: string }) {
             console.error("couldn't get canvas reference");
             return;
         }
-        const context = canvas.getContext('2d')!
+        const context = canvas.getContext('2d')
+        if (!context) { return; }
         context.lineWidth = lineWidth;
         context.strokeStyle = strokeStyle;
         context.lineCap = 'round';
-    }, [strokeStyle, lineWidth]);
+    }, [strokeStyle, lineWidth, canvasRef]);
 
-    
     // drawing
     function startDrawing(e: React.MouseEvent) {
         if (!ctx) { return; }
         setIsDrawing(true);
         ctx.beginPath();
-        const {offsetX, offsetY} = e.nativeEvent;
+        const { offsetX, offsetY } = e.nativeEvent;
         ctx.moveTo(offsetX, offsetY);
 
         // store starting point and reset points
-        startPointRef.current = {x: offsetX, y: offsetY};
+        startPointRef.current = { x: offsetX, y: offsetY };
         pointsRef.current = [];
     }
     function draw(e: React.MouseEvent) {
         if (!ctx) { return; }
-        if (!isDrawing) {
-            return;
-        }
-        const {offsetX, offsetY} = e.nativeEvent;
+        if (!isDrawing) { return; }
+        const { offsetX, offsetY } = e.nativeEvent;
         ctx.lineTo(offsetX, offsetY);
         ctx.stroke();
 
         // add point
-        pointsRef.current.push({x: offsetX, y: offsetY})
+        pointsRef.current.push({ x: offsetX, y: offsetY })
     }
     function endDrawing() {
         if (!ctx) { return; }
@@ -147,26 +143,33 @@ export default function Whiteboard({ className } : { className: string }) {
                 lineCap: ctx.lineCap
             }
         }
-        const tx = dbRef.current!.transaction("canvases", "readwrite");
-        const store = tx.objectStore("canvases");
-        store.put(change);
+        if (dbRef.current) {
+            const tx = dbRef.current.transaction("canvases", "readwrite");
+            const store = tx.objectStore("canvases");
+            store.put(change);
+        }
     }
 
     // reset canvas
     function resetCanvas() {
-        const ctx = canvasRef.current!.getContext('2d');
+        if (!canvasRef.current) { return; }
+        const ctx = canvasRef.current.getContext('2d');
 
-        ctx!.reset();
-        ctx!.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
-
-        setStrokeStyle(ctx!.strokeStyle);
+        if (!ctx) { return; }
+        ctx.reset();
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        setStrokeStyle(ctx.strokeStyle);
         setColorIndex(0);
-        setLineWidth(ctx!.lineWidth);
+        setLineWidth(ctx.lineWidth);
 
-        const tx = dbRef.current!.transaction("canvases", "readwrite");
-        const store = tx.objectStore("canvases");
-        store.clear();
+        if (dbRef.current) {
+            const tx = dbRef.current.transaction("canvases", "readwrite");
+            const store = tx.objectStore("canvases");
+            store.clear();
+        }
     }
+
+    // saving
 
     return (
         <div className={`flex flex-col items-center z-0 ${className}`}>
@@ -176,13 +179,22 @@ export default function Whiteboard({ className } : { className: string }) {
                 onMouseUp={endDrawing}
                 onMouseMove={draw}
                 onMouseLeave={endDrawing}
-                >
+            >
             </canvas>
-            <WhiteboardPalette/>
-            <div className="fixed bottom-2 left-2 flex flex-row space-x-2"> 
+            <WhiteboardPalette />
+            <div className="fixed bottom-2 left-2 flex flex-row space-x-2">
                 <Button onClick={resetCanvas} className="">
                     Reset canvas
                 </Button>
+                {/* <Button onClick={downloadImage} className=""> */}
+                {/*     Download Canvas as Image */}
+                {/* </Button> */}
+                {/* <Button onClick={downloadImage} className=""> */}
+                {/*     Download Canvas as Image */}
+                {/* </Button> */}
+                {/* <Button onClick={downloadSnapshot} className=""> */}
+                {/*     Download Canvas Data */}
+                {/* </Button> */}
             </div>
         </div>
     );

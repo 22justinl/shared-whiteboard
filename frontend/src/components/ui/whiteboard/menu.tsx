@@ -1,13 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Button from "@/components/ui/button";
+import { useWhiteboard } from "@/lib/whiteboard-context";
 
-export default function Menu({ className }: {className?: string}) {
+export default function Menu({ className }: { className?: string }) {
     const [isOpen, setIsOpen] = useState(false);
+    const { canvasRef, canvasReady, dbRef, dbReady } = useWhiteboard();
+
+    const downloadImage = useRef(() => {});
+    const downloadSnapshot = useRef(() => {});
+
     function toggleMenu() {
         setIsOpen(!isOpen);
     };
+
+    useEffect(() => {
+        if (canvasReady && dbReady) {
+            downloadImage.current = () => {
+                if (!canvasRef.current) { return; }
+                canvasRef.current.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob!);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'canvas.png';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                }, 'image/png');
+            };
+            downloadSnapshot.current = () => {
+                if (!dbRef.current) { return; }
+                const tx = dbRef.current.transaction("canvases", "readonly");
+                const store = tx.objectStore("canvases");
+                const getAllRequest = store.getAll();
+                getAllRequest.onsuccess = () => {
+                    const data = JSON.stringify(getAllRequest.result);
+                    const blob = new Blob([data]);
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'canvas.amongus';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                };
+            };
+        }
+    }, [canvasRef, canvasReady, dbRef, dbReady]);
 
     return (
         <div className={`${className}`}>
@@ -23,18 +61,20 @@ export default function Menu({ className }: {className?: string}) {
                         x {/*icon*/}
                     </button>
                 </div>
-                <ul>
-                    <li>
-                        <button>
-                            b1
-                        </button>
-                    </li>
-                    <li>
-                        <button>
-                            b2
-                        </button>
-                    </li>
-                </ul>
+                <div>
+                    <ul>
+                        <li>
+                            <Button onClick={downloadImage.current}>
+                                Download Canvas as PNG
+                            </Button>
+                        </li>
+                        <li>
+                            <Button onClick={downloadSnapshot.current}>
+                                Download Canvas Data
+                            </Button>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     );
