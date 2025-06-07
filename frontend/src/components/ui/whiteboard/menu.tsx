@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Button from "@/components/ui/button";
 import { useWhiteboard } from "@/lib/whiteboard-context";
+import Image from "next/image";
 
 export default function Menu({ className }: { className?: string }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -49,8 +50,8 @@ export default function Menu({ className }: { className?: string }) {
 
     return (
         <div className={`${className}`}>
-            <Button onClick={toggleMenu}>
-                Menu
+            <Button onClick={toggleMenu} className="rounded-full">
+                <Image src="/images/menu.svg" alt="Menu" width={20} height={20} objectFit="contain"/>
             </Button>
             <div className={`absolute top-0 bg-white flex flex-col text-black border rounded-r-lg space-x-6 px-5 py-5 justify-start transition-all ${isOpen ? "left-0" : "-left-100"}`}>
                 <div className="flex flex-row justify-between min-w-72">

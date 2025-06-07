@@ -7,6 +7,7 @@ import ShareMenu from "@/components/ui/whiteboard/sharemenu";
 import WhiteboardProvider from "@/lib/whiteboard-context";
 import SessionProvider from "@/lib/session-context";
 import MemberTab from "@/components/ui/whiteboard/membertab";
+import Image from "next/image";
 
 export default function RootLayout({
     children,
@@ -22,7 +23,9 @@ export default function RootLayout({
                     <div className="top-0 left-0 flex flex-row z-10">
                         <Menu className="m-2" />{/*icon*/}
                         <ShareMenu />
-                        <LinkButton text="Home" link="/" className="m-2" />
+                        <LinkButton link="/" className="m-2">
+                            <Image src="/images/home.svg" alt="Home" width={20} height={20} objectFit="contain"/>
+                        </LinkButton>
                         {/*share popup*/}
                         <MemberTab />
                     </div>

@@ -192,7 +192,10 @@ export default function ShareMenu() {
                                 X
                             </button>
                         </div>
-                        <div className="flex align-middle w-full justify-center items-center">
+                        <div className="flex align-middle w-full justify-center items-center space-x-2">
+                            <h1>
+                                Username
+                            </h1>
                             <input
                                 className="border border-black rounded-md p-1 w-full h-10" defaultValue={username} onBlur={(e) => handleUsernameField(e)} />
                         </div>
@@ -204,14 +207,20 @@ export default function ShareMenu() {
                                     </Button>
                                     :
                                     <div className="flex flex-col space-y-2 w-full justify-center items-center">
-                                        <div className="flex flex-row w-full items-center justify-center space-x-2 p-2">
-                                            <input disabled value={`${window.location.origin}/whiteboard#room=${roomId}`} className="border border-black rounded-md p-1 w-full h-10">
-                                            </input>
-                                            <button className={`border border-black rounded-md h-10 w-30 p-1 transition-colors
-                                                ${!copied ? "bg-white hover:bg-gray-200" : "bg-green-500 hover:bg-green-600"}`}
-                                                onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/whiteboard#room=${roomId}`); setCopied(true) }}>
-                                                {!copied ? "Copy Link" : "Copied!"}
-                                            </button>
+                                        <div className="flex flex-row w-full items-center space-x-2 justify-between">
+                                            {!sessionActive ?
+                                                <div>Creating session...</div>
+                                                :
+                                                <div className="w-full flex justify-between space-x-2">
+                                                    <input disabled value={`${window.location.origin}/whiteboard#room=${roomId}`} className="border border-black rounded-md w-full h-10 p-2">
+                                                    </input>
+                                                    <button
+                                                        className={`border border-black rounded-md h-10 w-30 transition-colors ${!copied ? "bg-white hover:bg-gray-200" : "bg-green-500 hover:bg-green-600"}`}
+                                                        onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/whiteboard#room=${roomId}`); setCopied(true); }}>
+                                                        {!copied ? "Copy Link" : "Copied!"}
+                                                    </button>
+                                                </div>
+                                            }
                                         </div>
                                         <Button onClick={endSession}>
                                             end session
