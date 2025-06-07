@@ -4,6 +4,7 @@ import Button from "@/components/ui/button";
 
 import { useState, useEffect } from "react";
 import { useSession } from "@/lib/session-context";
+import Image from "next/image";
 
 export default function MemberTab() {
     const { sessionActive, memberNames } = useSession();
@@ -17,7 +18,7 @@ export default function MemberTab() {
         <div>
             <Button className={`m-2 ${sessionActive ? '' : 'hidden'}`}
                 onClick={() => setMemberTabOpen(!memberTabOpen)}>
-                members
+                <Image src="/images/members.svg" width={20} height={20} objectFit="contain" alt="Members"/>
             </Button>
             <div className={`absolute top-0 bg-white flex flex-col text-black border rounded-r-lg space-x-6 px-5 py-5 justify-start transition-all ${memberTabOpen && sessionActive ? 'left-0' : '-left-50'}`}>
                 <h1>Members</h1>

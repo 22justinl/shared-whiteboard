@@ -29,8 +29,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="fixed top-2 right-2 flex flex-row space-x-3">
-            <LinkButton text="Log in" link="/"/>
-            <LinkButton text="Sign up" link="/"/>
+          <LinkButton link="/">
+            Log in
+          </LinkButton>
+          <LinkButton link="/">
+            Sign up
+          </LinkButton>
         </div>
         {children}
       </body>

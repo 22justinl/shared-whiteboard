@@ -20,7 +20,7 @@ type SessionContextType = {
     setUsername: React.Dispatch<string>;
 }
 
-const SessionContext = createContext<SessionContextType | null>(null);
+export const SessionContext = createContext<SessionContextType | null>(null);
 
 export default function SessionProvider({ children }: { children: React.ReactNode }) {
     const [sessionActive, setSessionActive] = useState(false);
